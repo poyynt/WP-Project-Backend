@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 
 from rest_framework.permissions import BasePermission, IsAuthenticated
 
+from common.permissions import HasPerm, HasPerm, has_perm_helper
+
 
 class IsAuthenticatedAndInGroup(BasePermission):
     """
@@ -31,7 +33,8 @@ class StubView(APIView):
     Just a stub endpoint for testing
     """
     # permission_required = ["stub.stub"]
-    permission_classes = (lambda : IsAuthenticatedAndInGroup("stub_reader"),)
+    # permission_classes = (lambda : IsAuthenticatedAndInGroup("stub_reader"),)
+    permission_classes = [has_perm_helper("stub_reader")]
 
 
     def get(self, request):
