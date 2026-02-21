@@ -12,6 +12,7 @@ DEFAULT_PERMS = {
     "can_investigate": "بازجویی/تحقیق",
     "can_approve_arrest": "تأیید دستگیری",
     "can_give_reward": "ثبت/پرداخت پاداش",
+    "base": "Base Permission for all users",
 }
 
 DEFAULT_ROLES = {
@@ -29,7 +30,7 @@ DEFAULT_ROLES = {
     "criminal": [],
     "judge": [],
     "forensic": [],
-    "base": [],
+    "base": ["base"],
 }
 
 # @receiver(post_migrate, sender=apps.get_app_config("accounts"))
