@@ -1,7 +1,6 @@
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.apps import apps
-from .models import Permission, Role
 
 DEFAULT_PERMS = {
     "case_create": "Create Case",
@@ -33,17 +32,21 @@ DEFAULT_ROLES = {
     "base": [],
 }
 
-@receiver(post_migrate, sender=apps.get_app_config("accounts"))
-def create_default_perms(sender, **kwargs):
+# @receiver(post_migrate, sender=apps.get_app_config("accounts"))
+def create_default_perms(**kwargs):
+    from .models import Permission
     Permission.objects.bulk_create(
         [Permission(codename=k, name=v) for k, v in DEFAULT_PERMS.items()],
         ignore_conflicts=True,
     )
 
-@receiver(post_migrate, sender=apps.get_app_config("accounts"))
-def create_default_roles(sender, **kwargs):
-    Role.objects.bulk_create(
-        [
-            Role(name=k, permissions=v) for k, v in DEFAULT_ROLES.items()
-        ]
-    )
+# @receiver(post_migrate, sender=apps.get_app_config("accounts"))
+def create_default_roles(**kwargs):
+    from .models import Role, Permission
+
+    for role_name, perm_codes in DEFAULT_ROLES.items():
+        role, _ = Role.objects.get_or_create(name=role_name)
+
+        if perm_codes:
+            perms = Permission.objects.filter(codename__in=perm_codes)
+            role.permissions.set(perms)
