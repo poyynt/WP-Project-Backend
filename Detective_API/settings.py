@@ -43,7 +43,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'drf_spectacular',
-    'accounts.apps.AccountsConfig'
+    'accounts.apps.AccountsConfig',
+    'cases.apps.CasesConfig',
+    'suspects.apps.SuspectsConfig',
+    'evidences.apps.EvidencesConfig',
+    'rewards.apps.RewardsConfig'
 ]
 
 MIDDLEWARE = [
@@ -139,9 +143,13 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Detective Application API',
     'VERSION': '1.0.0',
 }
+
+AUTH_USER_MODEL = 'accounts.User'
