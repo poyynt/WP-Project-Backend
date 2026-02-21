@@ -1,22 +1,19 @@
 from rest_framework.permissions import BasePermission
 
 
-class HasPerm(BasePermission):
-    """
-    usage: permission_classes = [HasPerm('can_edit_case')]
-    """
+def has_perm_helper(permission_name):
+    return lambda: HasPerm(permission_name)
 
+
+class HasPerm(BasePermission):
     def __init__(self, codename):
         self.codename = codename
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        return (
-                request.user.roles.filter(permissions__codename=self.codename).exists()
-                or
-                request.user.roles.filter(name="admin").exists()
-        )
+        return (request.user.roles.filter(permissions__codename=self.codename).exists() or request.user.roles.filter(
+            name="admin").exists())
 
 
 class DynamicRole(BasePermission):
