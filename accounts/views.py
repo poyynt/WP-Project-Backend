@@ -6,8 +6,7 @@ from django.contrib.auth import get_user_model
 
 from .models import Role
 from .serializers import RegisterSerializer, UserSerializer, RoleSerializer
-from common.permissions import HasPerm
-
+from common.permissions import HasPerm, has_perm_helper
 
 User = get_user_model()
 
@@ -65,3 +64,15 @@ def edit_roles(request, pk):
     ser.is_valid(raise_exception=True)
     user.roles.set([r["id"] for r in ser.validated_data])
     return Response(UserSerializer(user).data)
+
+
+@extend_schema(
+    summary="Get number of police employees",
+    tags=["Stats"]
+)
+@api_view(["GET"])
+@permission_classes([has_perm_helper("base")])
+def num_employees(request):
+    print(request.user)
+    count = User.objects.exclude(roles__name="base").count()
+    return Response({"count": count})
