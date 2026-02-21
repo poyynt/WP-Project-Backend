@@ -1,9 +1,13 @@
 from rest_framework import viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema_view, extend_schema
+from rest_framework.response import Response
+
 from .models import Case
 from .serializers import CaseSerializer
-from common.permissions import HasPerm
+from common.permissions import HasPerm, has_perm_helper
+
 
 @extend_schema_view(
     list=extend_schema(summary="List cases", tags=["Cases"]),
@@ -23,3 +27,25 @@ class CaseViewSet(viewsets.ModelViewSet):
         if self.action == "destroy":
             return [HasPerm("case_delete")]
         return [HasPerm("case_read")]
+
+
+@extend_schema(
+    summary="Get number of solved cases",
+    tags=["Stats"]
+)
+@api_view(["GET"])
+@permission_classes([has_perm_helper("base")])
+def num_solved(request):
+    count = Case.objects.filter(status="solved").count()
+    return Response({"count": count})
+
+
+@extend_schema(
+    summary="Get number of active cases",
+    tags=["Stats"]
+)
+@api_view(["GET"])
+@permission_classes([has_perm_helper("base")])
+def num_active(request):
+    count = Case.objects.exclude(status="solved").count()
+    return Response({"count": count})

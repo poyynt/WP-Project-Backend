@@ -73,6 +73,5 @@ def edit_roles(request, pk):
 @api_view(["GET"])
 @permission_classes([has_perm_helper("base")])
 def num_employees(request):
-    print(request.user)
     count = User.objects.exclude(roles__name="base").count()
     return Response({"count": count})
