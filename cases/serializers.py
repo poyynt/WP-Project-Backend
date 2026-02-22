@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from suspects.models import Suspect
-from .models import Case, Complainant
+from .models import Case
 from accounts.serializers import UserSerializer
 
 
@@ -11,15 +11,6 @@ class CaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ["id", "title", "level", "status", "created_at", "created_by"]
-
-
-class ComplainantSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Complainant
-        fields = ["id", "case", "user", "verified"]
-        read_only_fields = ["id"]
 
 
 class MostWantedSerializer(serializers.ModelSerializer):
