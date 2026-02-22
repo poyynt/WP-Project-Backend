@@ -1,11 +1,16 @@
+from datetime import timedelta
+
+from django.db.models import ExpressionWrapper, DurationField, F, Max
+from django.db.models.functions import Coalesce, Now
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework.response import Response
 
+from suspects.models import Suspect
 from .models import Case
-from .serializers import CaseSerializer
+from .serializers import CaseSerializer, MostWantedSerializer
 from common.permissions import HasPerm, has_perm_helper
 
 
@@ -49,3 +54,29 @@ def num_solved(request):
 def num_active(request):
     count = Case.objects.exclude(status="solved").count()
     return Response({"count": count})
+
+@extend_schema(
+    summary="List most wanted suspects",
+    description=(
+        "Returns all suspects who have been under interrogation "
+        "for more than 30 days in at least one open cases."
+    ),
+    responses={200: MostWantedSerializer(many=True)},
+    tags=["Cases"]
+)
+@api_view(["GET"])
+def most_wanted(request):
+    suspects = (
+        Suspect.objects
+        .annotate(case_duration=ExpressionWrapper(
+            Coalesce(F("case__closed_at"), Now()) - F("case__created_at"),
+            output_field=DurationField()
+        ))
+        .annotate(
+            max_duration=Max("case_duration"),
+            max_level=Max("case__level"),
+        )
+        .filter(max_duration__gt=timedelta(days=30))
+    )
+
+    return Response(MostWantedSerializer(suspects, many=True, context={"request": request}).data)

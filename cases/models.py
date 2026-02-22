@@ -11,6 +11,7 @@ class Case(models.Model):
     title = models.CharField(max_length=255)
     level = models.IntegerField(choices=CrimeLevel.choices, default=CrimeLevel.LEVEL_3)
     created_at = models.DateTimeField(auto_now_add=True)
+    closed_at = models.DateTimeField(blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="created_cases")
     status = models.CharField(max_length=50, default="open")
 
