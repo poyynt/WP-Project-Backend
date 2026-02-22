@@ -10,6 +10,7 @@ from common.permissions import HasPerm, has_perm_helper
 
 User = get_user_model()
 
+
 @extend_schema(
     summary="Register new user",
     request=RegisterSerializer,
@@ -24,6 +25,7 @@ def register(request):
     ser.is_valid(raise_exception=True)
     user = ser.save()
     return Response(UserSerializer(user).data, status=201)
+
 
 @extend_schema(
     summary="Current user profile",
@@ -40,30 +42,16 @@ def profile(request):
     ser.save()
     return Response(ser.data)
 
+
 @extend_schema(
     summary="List users",
     responses={200: UserSerializer(many=True)},
     tags=["Auth"]
 )
 @api_view(["GET"])
-# @permission_classes([IsAuthenticated, HasPerm("user_read")])
+@permission_classes([IsAuthenticated, has_perm_helper("admin")])
 def user_list(request):
     return Response(UserSerializer(User.objects.all(), many=True).data)
-
-@extend_schema(
-    summary="Edit user roles",
-    request=RoleSerializer(many=True),
-    responses={200: UserSerializer},
-    tags=["Auth"]
-)
-@api_view(["PATCH"])
-# @permission_classes([IsAuthenticated, HasPerm("user_edit")])
-def edit_roles(request, pk):
-    user = User.objects.get(pk=pk)
-    ser = RoleSerializer(data=request.data, many=True)
-    ser.is_valid(raise_exception=True)
-    user.roles.set([r["id"] for r in ser.validated_data])
-    return Response(UserSerializer(user).data)
 
 
 @extend_schema(
