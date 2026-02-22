@@ -27,7 +27,7 @@ class Case(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="created_cases")
-    status = models.CharField(max_length=50, choices=CaseStatus.choices, default=CaseStatus.OPEN)
+    status = models.CharField(max_length=50, choices=CaseStatus.choices, default=CaseStatus.CREATED)
     complainants = models.ManyToManyField(User, related_name="complaints")
 
     def __str__(self):
@@ -36,7 +36,7 @@ class Case(models.Model):
     def get_case_cadet(self):
         history = self.workflow_history.filter(recipient__roles__name="cadet").first()
         if history:
-            return history.user
+            return history.recipient
         else:
             cadet_users = User.objects.filter(roles__name="cadet")
             if not cadet_users.exists():
@@ -44,11 +44,11 @@ class Case(models.Model):
             return random.choice(cadet_users)
 
     def get_case_officer(self):
-        history = self.workflow_history.filter(recipient__roles__name="officer TODO").first()
+        history = self.workflow_history.filter(recipient__roles__name="police_officer").first()
         if history:
-            return history.user
+            return history.recipient
         else:
-            officer_users = User.objects.filter(roles__name="officer")
+            officer_users = User.objects.filter(roles__name="police_officer")
             if not officer_users.exists():
                 raise RuntimeError("No officer user exists to handle case")
             return random.choice(officer_users)
@@ -80,6 +80,10 @@ class Case(models.Model):
             self.save()
             WorkflowHistory.objects.create(case=self, recipient=self.created_by, message=error_message)
 
+    def open_case(self):
+        self.status = CaseStatus.OPEN
+        self.save()
+
     def cancel_case(self):
         with transaction.atomic():
             self.status = CaseStatus.CANCELLED
@@ -89,7 +93,7 @@ class Case(models.Model):
 
 class WorkflowHistory(models.Model):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="workflow_history")
-    recipient = models.ManyToManyField(User, related_name="workflow_history")
+    recipient = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     message = models.CharField(max_length=255, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
