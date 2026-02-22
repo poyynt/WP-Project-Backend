@@ -33,7 +33,7 @@ class Case(models.Model):
     def __str__(self):
         return self.title
 
-    def get_case_cadet(self):
+    def get_case_approver(self):
         history = self.workflow_history.filter(recipient__roles__name="cadet").first()
         if history:
             return history.recipient
@@ -43,38 +43,28 @@ class Case(models.Model):
                 raise RuntimeError("No cadet user exists to handle case")
             return random.choice(cadet_users)
 
-    def get_case_officer(self):
-        history = self.workflow_history.filter(recipient__roles__name="police_officer").first()
-        if history:
-            return history.recipient
-        else:
-            officer_users = User.objects.filter(roles__name="police_officer")
-            if not officer_users.exists():
-                raise RuntimeError("No officer user exists to handle case")
-            return random.choice(officer_users)
-
     def send_to_cadet(self):
         with transaction.atomic():
-            cadet = self.get_case_cadet()
+            cadet = self.get_case_approver()
             self.status = CaseStatus.PENDING_APPROVAL
             self.save()
             WorkflowHistory.objects.create(case=self, recipient=cadet)
 
-    def send_to_officer(self):
+    def send_to_officer(self, request_user):
         with transaction.atomic():
-            officer = self.get_case_officer()
+            boss = request_user.reporting_to
             self.status = CaseStatus.PENDING_VERIFICATION
             self.save()
-            WorkflowHistory.objects.create(case=self, recipient=officer)
+            WorkflowHistory.objects.create(case=self, recipient=boss)
 
     def reject_case_to_cadet(self, error_message):
         with transaction.atomic():
-            cadet = self.get_case_cadet()
+            cadet = self.get_case_approver()
             self.status = CaseStatus.PENDING_APPROVAL
             self.save()
             WorkflowHistory.objects.create(case=self, recipient=cadet, message=error_message)
 
-    def reject_case_to_complainant(self, error_message):
+    def reject_case_to_creator(self, error_message):
         with transaction.atomic():
             self.status = CaseStatus.CREATED
             self.save()

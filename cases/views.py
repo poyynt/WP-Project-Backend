@@ -40,21 +40,26 @@ class CaseViewSet(viewsets.ModelViewSet):
         verdict = request.data.get("verdict", None)
 
         if case.status == CaseStatus.CREATED:
-            case.send_to_cadet()
-            return Response(status=status.HTTP_201_CREATED)
+            if case.created_by.roles.filter(name__in=("base", "complainant", "cadet")).exists():
+                case.send_to_cadet()
+            elif case.created_by.roles.filter(name__in=("chief_police",)).exists():
+                case.open_case()
+            else:
+                case.send_to_officer(case.created_by)
+            return Response(status=status.HTTP_200_OK)
 
         elif case.status == CaseStatus.PENDING_APPROVAL:
             if not request.user.roles.filter(permissions__codename="case_approve").exists():
                 return Response(status=status.HTTP_403_FORBIDDEN)
             if verdict == "pass":
-                case.send_to_officer()
+                case.send_to_officer(request.user)
                 return Response(status=status.HTTP_200_OK)
             elif verdict == "fail":
                 if case.workflow_history.filter(recipient=case.created_by).count() >= 2:
                     case.cancel_case()
                     return Response({"message": "Case got rejected 3 times, case cancelled"},
                                     status=status.HTTP_406_NOT_ACCEPTABLE)
-                case.reject_case_to_complainant(request.data.get("message"))
+                case.reject_case_to_creator(request.data.get("message"))
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -65,7 +70,10 @@ class CaseViewSet(viewsets.ModelViewSet):
                 case.open_case()
                 return Response(status=status.HTTP_200_OK)
             elif verdict == "fail":
-                case.reject_case_to_cadet(request.data.get("message"))
+                if case.created_by.roles.filter(name__in=("base", "complainant", "cadet")).exists():
+                    case.reject_case_to_cadet(request.data.get("message"))
+                else:
+                    case.reject_case_to_creator(request.data.get("message"))
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

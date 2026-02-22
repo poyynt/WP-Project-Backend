@@ -19,7 +19,7 @@ DEFAULT_PERMS = {
 
 DEFAULT_ROLES = {
     "admin": ["admin"],
-    "chief_police": [],
+    "chief_police": ["case_verify", "case_read", "case_edit", "case_approve"],
     "captain": [],
     "sergeant": ["investigation_submit"],
     "detective": ["investigation_submit"],

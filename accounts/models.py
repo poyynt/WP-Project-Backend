@@ -23,6 +23,7 @@ class User(AbstractUser):
     national_id = models.CharField(max_length=10, unique=True)
     phone = models.CharField(max_length=15)
     roles = models.ManyToManyField(Role, blank=True)
+    reporting_to = models.ForeignKey('self', on_delete=models.deletion.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name} ({', '.join([role.name for role in self.roles.all()])})" + (f" reporting to {self.reporting_to.first_name} {self.reporting_to.last_name}" if self.reporting_to else "")
