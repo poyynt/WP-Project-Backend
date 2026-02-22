@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import CaseViewSet, num_solved, num_active, most_wanted
 
 router = DefaultRouter()
-router.register(r"cases", CaseViewSet, basename="case")
+router.register("", CaseViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

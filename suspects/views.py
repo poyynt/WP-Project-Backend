@@ -4,12 +4,13 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from .models import Suspect, Investigation
 from .serializers import SuspectSerializer, InvestigationSerializer
-from common.permissions import HasPerm
+from common.permissions import HasPerm, has_perm_helper
+
 
 class SuspectViewSet(viewsets.ModelViewSet):
     queryset = Suspect.objects.all()
     serializer_class = SuspectSerializer
-    permission_classes = [IsInvestigator]
+    permission_classes = [has_perm_helper("investigation_submit")]
 
     @extend_schema(
         summary="Submit investigation result",
@@ -17,7 +18,7 @@ class SuspectViewSet(viewsets.ModelViewSet):
         responses={201: InvestigationSerializer},
         tags=["Suspects"]
     )
-    @action(detail=True, methods=["post"], url_path="investigate")
+    @action(detail=True, methods=["POST"], url_path="investigate")
     def investigate(self, request, pk=None):
         suspect = self.get_object()
         ser = InvestigationSerializer(data={**request.data, "suspect": suspect.id})
