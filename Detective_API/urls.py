@@ -27,6 +27,7 @@ urlpatterns = [
     path('auth/', include('dj_rest_auth.urls')),
     path('accounts/', include('accounts.urls')),
     path('cases/', include('cases.urls')),
+    path('evidences/', include('evidences.urls')),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('stub/', StubView.as_view(), name='stub'),

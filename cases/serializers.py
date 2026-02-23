@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from evidences.serializers import EvidenceSerializer
 from suspects.models import Suspect
 from .models import Case
 from accounts.serializers import UserSerializer
@@ -7,10 +8,11 @@ from accounts.serializers import UserSerializer
 
 class CaseSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
+    evidences = EvidenceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Case
-        fields = ["id", "title", "level", "status", "created_at", "created_by"]
+        fields = ["id", "title", "level", "status", "created_at", "created_by", "description", "evidences"]
 
 
 class MostWantedSerializer(serializers.ModelSerializer):
