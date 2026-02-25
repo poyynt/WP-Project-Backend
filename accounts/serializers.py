@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Role, Permission
+from .models import Role, Permission, UserPref
 
 User = get_user_model()
 
@@ -44,6 +44,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             user.roles.set([default_role])
 
             return user
+
+class UserPrefSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPref
+        fields = ["key", "value"]
 
 
 class UserSerializer(serializers.ModelSerializer):

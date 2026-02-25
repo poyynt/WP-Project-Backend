@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -63,3 +64,45 @@ def user_list(request):
 def num_employees(request):
     count = User.objects.exclude(roles__name="base").count()
     return Response({"count": count})
+
+
+# views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+
+from .models import UserPref
+from .serializers import UserPrefSerializer
+
+
+@extend_schema(
+    summary="Get or update current user's preferences",
+    request=UserPrefSerializer(many=True),
+    responses={200: UserPrefSerializer(many=True)},
+    tags=["Account"]
+)
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def user_preferences(request):
+    """
+    GET: Return all preferences for the current user.
+    PATCH: Update existing preferences or create new ones.
+    """
+    if request.method == "GET":
+        prefs = UserPref.objects.filter(user=request.user)
+        ser = UserPrefSerializer(prefs, many=True)
+        return Response(ser.data)
+
+    data = request.data
+    if not isinstance(data, list):
+        return Response({"detail": "Expected a list of preferences"}, status=400)
+
+    for item in data:
+        UserPref.objects.update_or_create(
+            user=request.user,
+            key=item.get("key"),
+            defaults={"value": item.get("value")}
+        )
+
+    return Response(status=status.HTTP_200_OK)

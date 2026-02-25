@@ -27,3 +27,9 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({', '.join([role.name for role in self.roles.all()])})" + (f" reporting to {self.reporting_to.first_name} {self.reporting_to.last_name}" if self.reporting_to else "")
+
+
+class UserPref(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="preferences")
+    key = models.CharField(max_length=255)
+    value = models.TextField()
