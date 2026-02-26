@@ -106,3 +106,45 @@ def user_preferences(request):
         )
 
     return Response(status=status.HTTP_200_OK)
+
+@extend_schema(
+    summary="Update a user's roles (admin only)",
+    responses={200: UserSerializer},
+    tags=["Auth"]
+)
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated, has_perm_helper("admin")])
+def update_user_roles(request, user_id):
+    """
+    Replace a user's roles with the provided list of role IDs.
+    Only users with 'admin' role can perform this action.
+    """
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=404)
+
+    if request.method == "GET":
+        return Response(RoleSerializer(user.roles, many=True).data)
+
+    roles = Role.objects.filter(id__in=request.data)
+
+    user.roles.set(roles)
+    user.save()
+
+    return Response(UserSerializer(user).data, status=200)
+
+@extend_schema(
+    summary="List all roles",
+    responses={200: RoleSerializer(many=True)},
+    tags=["Auth"]
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, has_perm_helper("admin")])
+def role_list(request):
+    """
+    Return all available roles.
+    Only accessible to users with 'admin' permission.
+    """
+    roles = Role.objects.all()
+    return Response(RoleSerializer(roles, many=True).data)

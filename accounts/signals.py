@@ -15,6 +15,7 @@ DEFAULT_PERMS = {
     "can_approve_arrest": "تأیید دستگیری",
     "can_give_reward": "ثبت/پرداخت پاداش",
     "base": "Base Permission for all users",
+    "admin": "Administrator permission"
 }
 
 DEFAULT_ROLES = {
