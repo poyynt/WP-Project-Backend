@@ -1,6 +1,8 @@
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema
+
+from cases.models import Case
 from .models import Evidence
 from .serializers import EvidenceSerializer
 from common.permissions import HasPerm
@@ -35,6 +37,18 @@ class EvidenceViewSet(viewsets.ModelViewSet):
         if self.action == "destroy":
             return [HasPerm("evidence_delete")]
         return [HasPerm("evidence_read")]
+
+    def get_queryset(self):
+        queryset = Evidence.objects.filter(
+            case__in=Case.objects.visible_to(self.request.user)
+        )
+        case_id = self.request.query_params.get("case")
+        if case_id:
+            queryset = queryset.filter(case_id=case_id)
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(recorded_by=self.request.user)
 
     # def list(self, request, *args, **kwargs):
     #     queryset = self.filter_queryset(self.get_queryset())

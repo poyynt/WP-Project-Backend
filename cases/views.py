@@ -26,6 +26,9 @@ class CaseViewSet(viewsets.ModelViewSet):
     queryset = Case.objects.all()
     serializer_class = CaseSerializer
 
+    def get_queryset(self):
+        return Case.objects.visible_to(self.request.user)
+
     def get_permissions(self):
         if self.action == "create":
             return [HasPerm("case_create")]

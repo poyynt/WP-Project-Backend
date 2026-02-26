@@ -8,7 +8,6 @@ from accounts.serializers import UserSerializer
 
 class CaseSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
-    evidences = EvidenceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Case

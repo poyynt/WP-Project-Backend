@@ -1,6 +1,8 @@
 import random
 
 from django.db import models, transaction
+from django.db.models import Q
+
 from accounts.models import User
 
 
@@ -20,7 +22,19 @@ class CaseStatus(models.TextChoices):
     CREATED = "created", "Created"
 
 
+class CaseQuerySet(models.QuerySet):
+    def visible_to(self, user):
+        if user.is_superuser or user.roles.filter(permissions__codename="case_read").exists():
+            return self.all()
+
+        return self.filter(
+            Q(created_by=user)
+        ).distinct()
+
+
 class Case(models.Model):
+    objects = CaseQuerySet.as_manager()
+
     title = models.CharField(max_length=255)
     description = models.TextField()
     level = models.IntegerField(choices=CrimeLevel.choices, default=CrimeLevel.LEVEL_3)
