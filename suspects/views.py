@@ -16,7 +16,7 @@ class SuspectViewSet(viewsets.ModelViewSet):
         summary="Submit investigation result",
         request=InvestigationSerializer,
         responses={201: InvestigationSerializer},
-        tags=["Suspects"]
+        tags=["suspects"]
     )
     @action(detail=True, methods=["POST"], url_path="investigate")
     def investigate(self, request, pk=None):

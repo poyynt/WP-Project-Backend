@@ -1,13 +1,14 @@
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.contrib.auth import get_user_model
 
-from .models import Role
-from .serializers import RegisterSerializer, UserSerializer, RoleSerializer
-from common.permissions import HasPerm, has_perm_helper
+from .models import Role, UserPref
+from .serializers import RegisterSerializer, UserSerializer, RoleSerializer, UserPrefSerializer
+from common.permissions import has_perm_helper
 
 User = get_user_model()
 
@@ -16,9 +17,9 @@ User = get_user_model()
     summary="Register new user",
     request=RegisterSerializer,
     responses={201: OpenApiResponse(description="User created")},
-    tags=["Auth"]
+    tags=["auth"]
 )
-@api_view(["PUT"])
+@api_view(["POST"])
 @permission_classes([])
 @authentication_classes([])
 def register(request):
@@ -31,33 +32,42 @@ def register(request):
 @extend_schema(
     summary="Current user profile",
     responses={200: UserSerializer},
-    tags=["Auth"]
+    tags=["auth"]
 )
-@api_view(["GET", "PATCH"])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def profile(request):
-    if request.method == "GET":
-        return Response(UserSerializer(request.user).data)
-    ser = UserSerializer(request.user, data=request.data, partial=True)
-    ser.is_valid(raise_exception=True)
-    ser.save()
-    return Response(ser.data)
+    return Response(UserSerializer(request.user).data)
 
 
 @extend_schema(
-    summary="List users",
+    summary="List all users (admin only)",
     responses={200: UserSerializer(many=True)},
-    tags=["Auth"]
+    tags=["auth"]
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, has_perm_helper("admin")])
 def user_list(request):
+    """
+    Get a list of all users.
+    Only accessible to users with 'admin' permission.
+    """
     return Response(UserSerializer(User.objects.all(), many=True).data)
 
 
 @extend_schema(
     summary="Get number of police employees",
-    tags=["Stats"]
+    tags=["stats"],
+    responses=OpenApiResponse(
+        response={
+            "type": "object",
+            "properties": {
+                "count": {"type": "integer"}
+            },
+            "required": ["count"],
+        },
+        description="Number of police employees",
+    )
 )
 @api_view(["GET"])
 @permission_classes([has_perm_helper("base")])
@@ -66,21 +76,11 @@ def num_employees(request):
     return Response({"count": count})
 
 
-# views.py
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, OpenApiResponse
-
-from .models import UserPref
-from .serializers import UserPrefSerializer
-
-
 @extend_schema(
     summary="Get or update current user's preferences",
     request=UserPrefSerializer(many=True),
     responses={200: UserPrefSerializer(many=True)},
-    tags=["Account"]
+    tags=["account"]
 )
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
@@ -107,16 +107,25 @@ def user_preferences(request):
 
     return Response(status=status.HTTP_200_OK)
 
+
 @extend_schema(
-    summary="Update a user's roles (admin only)",
-    responses={200: UserSerializer},
-    tags=["Auth"]
+    summary="Get or update a user's roles (admin only)",
+    responses={200: RoleSerializer(many=True)},
+    tags=["auth"],
+    request={
+        "application/json": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "description": "List of role IDs to assign to the user"
+        }
+    }
 )
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated, has_perm_helper("admin")])
 def update_user_roles(request, user_id):
     """
-    Replace a user's roles with the provided list of role IDs.
+    GET: Get a list of the provided user's roles.
+    PATCH: Replace a user's roles with the provided list of role IDs.
     Only users with 'admin' role can perform this action.
     """
     try:
@@ -134,10 +143,11 @@ def update_user_roles(request, user_id):
 
     return Response(UserSerializer(user).data, status=200)
 
+
 @extend_schema(
     summary="List all roles",
     responses={200: RoleSerializer(many=True)},
-    tags=["Auth"]
+    tags=["auth"]
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, has_perm_helper("admin")])

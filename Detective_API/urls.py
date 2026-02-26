@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import dj_rest_auth.views
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
@@ -24,7 +25,8 @@ from Detective_API.stub_view import StubView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('dj_rest_auth.urls')),
+    path('auth/login/', dj_rest_auth.views.LoginView.as_view(), name='rest-login'),
+    path('auth/logout/', dj_rest_auth.views.LogoutView.as_view(), name='rest-logout'),
     path('accounts/', include('accounts.urls')),
     path('cases/', include('cases.urls')),
     path('evidences/', include('evidences.urls')),

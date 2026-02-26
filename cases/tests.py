@@ -32,14 +32,14 @@ class CaseWorkflowTest(TestCase):
     def become(self, username):
         self.client.logout()
         self.client.login(username=username, password='password')
-        tok = self.client.post(path='/auth/login', data={"username": username, "password": "password"})
+        tok = self.client.post(path='/auth/login/', data={"username": username, "password": "password"})
         self.client_headers = {"Authorization": "Token " + tok.data["key"]}
 
     def test_send_case_to_cadet(self):
         """Test sending a case to a cadet for approval"""
         self.become("complainant")
-        url = f'/cases/{self.case.id}/'  # The URL to update the case (POST to send to cadet)
-        response = self.client.patch(url, data={}, headers=self.client_headers)
+        url = f'/cases/{self.case.id}/workflow'
+        response = self.client.post(url, data={}, headers=self.client_headers)
 
         self.case.refresh_from_db()
         self.assertEqual(self.case.status, 'pending_approval')
@@ -51,9 +51,9 @@ class CaseWorkflowTest(TestCase):
         """Test sending the case from cadet to officer for approval"""
         self.case.send_to_cadet()
 
-        url = f'/cases/{self.case.id}/'
+        url = f'/cases/{self.case.id}/workflow'
         self.become("cadet")
-        response = self.client.patch(url, data={"verdict": "pass"}, headers=self.client_headers)
+        response = self.client.post(url, data={"verdict": "pass"}, headers=self.client_headers)
 
         self.case.refresh_from_db()
         self.assertEqual(self.case.status, 'pending_verification')
@@ -66,9 +66,9 @@ class CaseWorkflowTest(TestCase):
         self.case.send_to_cadet()
 
         error_message = "Missing important info"
-        url = f'/cases/{self.case.id}/'
+        url = f'/cases/{self.case.id}/workflow'
         self.become("cadet")
-        response = self.client.patch(url, data={"verdict": "fail", "message": error_message},
+        response = self.client.post(url, data={"verdict": "fail", "message": error_message},
                                      headers=self.client_headers)
 
         self.case.refresh_from_db()
@@ -82,9 +82,9 @@ class CaseWorkflowTest(TestCase):
         self.case.send_to_cadet()
         self.case.send_to_officer(self.cadet)
 
-        url = f'/cases/{self.case.id}/'
+        url = f'/cases/{self.case.id}/workflow'
         self.become("officer")
-        response = self.client.patch(url, data={"verdict": "pass"}, headers=self.client_headers)
+        response = self.client.post(url, data={"verdict": "pass"}, headers=self.client_headers)
 
         self.case.refresh_from_db()
         self.assertEqual(self.case.status, 'open')
@@ -94,10 +94,10 @@ class CaseWorkflowTest(TestCase):
         self.case.send_to_cadet()
         self.case.send_to_officer(self.cadet)
 
-        url = f'/cases/{self.case.id}/'
+        url = f'/cases/{self.case.id}/workflow'
         error_message = "Needs more details"
         self.become("officer")
-        response = self.client.patch(url, data={"verdict": "fail", "message": error_message},
+        response = self.client.post(url, data={"verdict": "fail", "message": error_message},
                                      headers=self.client_headers)
 
         self.case.refresh_from_db()
@@ -115,9 +115,9 @@ class CaseWorkflowTest(TestCase):
         self.case.reject_case_to_creator("Rejected due to incorrect details")
         self.case.send_to_cadet()
 
-        url = f'/cases/{self.case.id}/'
+        url = f'/cases/{self.case.id}/workflow'
         self.become("cadet")
-        response = self.client.patch(url, data={"verdict": "fail", "message": "Needs more details"},
+        response = self.client.post(url, data={"verdict": "fail", "message": "Needs more details"},
                                      headers=self.client_headers)
 
         self.case.refresh_from_db()
@@ -156,8 +156,8 @@ class CaseWorkflowByPoliceTest(TestCase):
         )
 
         self.become("officer")
-        url = f'/cases/{case.id}/'
-        response = self.client.patch(url, data={}, headers=self.client_headers)
+        url = f'/cases/{case.id}/workflow'
+        response = self.client.post(url, data={}, headers=self.client_headers)
 
         case.refresh_from_db()
         self.assertEqual(case.status, 'pending_verification')
@@ -173,8 +173,8 @@ class CaseWorkflowByPoliceTest(TestCase):
         case.refresh_from_db()
         self.become("chief")
 
-        url = f'/cases/{case.id}/'
-        response = self.client.patch(url, data={"verdict": "pass"}, headers=self.client_headers)
+        url = f'/cases/{case.id}/workflow'
+        response = self.client.post(url, data={"verdict": "pass"}, headers=self.client_headers)
 
         case.refresh_from_db()
 
@@ -189,8 +189,8 @@ class CaseWorkflowByPoliceTest(TestCase):
         self.become("chief")
 
         error_message = "Not enough data"
-        url = f'/cases/{case.id}/'
-        response = self.client.patch(url, data={"verdict": "fail", "message": error_message},
+        url = f'/cases/{case.id}/workflow'
+        response = self.client.post(url, data={"verdict": "fail", "message": error_message},
                                      headers=self.client_headers)
 
         case.refresh_from_db()
@@ -206,8 +206,8 @@ class CaseWorkflowByPoliceTest(TestCase):
         )
 
         self.become("chief")
-        url = f'/cases/{case.id}/'
-        response = self.client.patch(url, data={}, headers=self.client_headers)
+        url = f'/cases/{case.id}/workflow'
+        response = self.client.post(url, data={}, headers=self.client_headers)
 
         case.refresh_from_db()
         self.assertEqual(case.status, 'open')

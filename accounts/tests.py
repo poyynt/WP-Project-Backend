@@ -28,12 +28,13 @@ class AccountViewsTestCase(APITestCase):
         self.profile_url = reverse('profile')
         self.user_list_url = reverse('user-list')
         self.num_employees_url = reverse('num-employees')
+        self.roles_url = reverse('roles-list')
         self.client = APIClient()
 
     def become(self, username):
         self.client.logout()
         self.client.login(username=username, password='password')
-        tok = self.client.post(path='/auth/login', data={"username": username, "password": "password"})
+        tok = self.client.post(path='/auth/login/', data={"username": username, "password": "password"})
         self.client_headers = {"Authorization": "Token " + tok.data["key"]}
 
     def test_register_user(self):
@@ -47,7 +48,7 @@ class AccountViewsTestCase(APITestCase):
             "phone": "1111111111"
         }
 
-        response = self.client.put(self.register_url, data)
+        response = self.client.post(self.register_url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 3)
@@ -59,15 +60,12 @@ class AccountViewsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["username"], self.user.username)
 
-    def test_user_profile_patch(self):
-        self.become("test")
-        new_data = {"first_name": "Updated", "last_name": "Name"}
+    def test_list_roles(self):
+        self.become("admin")
 
-        response = self.client.patch(self.profile_url, new_data, headers=self.client_headers)
+        response = self.client.get(self.roles_url, headers=self.client_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["first_name"], "Updated")
-        self.assertEqual(response.data["last_name"], "Name")
 
     def test_list_users_permission(self):
         self.become("test")

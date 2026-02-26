@@ -26,3 +26,7 @@ class MostWantedSerializer(serializers.ModelSerializer):
             return 0
         days = obj.max_duration.days
         return days * obj.max_level * 20_000_000
+
+class UserWorkflowCaseSerializer(serializers.Serializer):
+    case_id = serializers.IntegerField()
+    message = serializers.CharField(allow_null=True, required=False)
