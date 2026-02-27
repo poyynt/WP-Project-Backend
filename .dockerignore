@@ -1,0 +1,6 @@
+postgres_data/
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+media/

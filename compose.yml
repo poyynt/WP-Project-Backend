@@ -1,0 +1,30 @@
+services:
+  backend:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: ptorbatii/detective-api:v0.4
+    container_name: backend
+    ports:
+      - "8000:8000"
+    environment:
+#      - DEBUG=True
+      - POSTGRES_DB=app
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: db
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
