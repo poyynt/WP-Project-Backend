@@ -1,14 +1,13 @@
 services:
   backend:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-    image: ptorbatii/detective-api:v0.4
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: backend
     ports:
       - "8000:8000"
     environment:
-#      - DEBUG=True
+      - DEBUG=True
       - POSTGRES_DB=app
       - POSTGRES_USER=app
       - POSTGRES_PASSWORD=app

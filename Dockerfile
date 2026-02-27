@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "sleep 60 && python manage.py migrate && gunicorn --bind 0.0.0.0:8000 Detective_API.wsgi:application"]
+CMD ["sh", "-c", "sleep 1 && python manage.py migrate && gunicorn --bind 0.0.0.0:8000 Detective_API.wsgi:application"]
