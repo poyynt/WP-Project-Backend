@@ -3,6 +3,8 @@ from cases.models import Case
 from accounts.models import User
 
 class SuspectStatus(models.TextChoices):
+    SUSPECT_CREATED = "suspect_created", "Suspect Created"
+    SUSPECT_VERIFIED = "suspect_verified", "Suspect Verified"
     UNDER_INTERROGATION = "under_interrogation", "Under Interrogation"
     AWAITING_CAPTAIN_VERDICT = "awaiting_captain_verdict", "Awaiting Captain Verdict"
     AWAITING_CHIEF_VERDICT = "awaiting_chief_verdict", "Awaiting Chief Verdict"
@@ -15,7 +17,7 @@ class Suspect(models.Model):
     national_id = models.CharField(max_length=10)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, choices=SuspectStatus.choices, default=SuspectStatus.UNDER_INTERROGATION)
+    status = models.CharField(max_length=50, choices=SuspectStatus.choices, default=SuspectStatus.SUSPECT_CREATED)
 
     def __str__(self):
         return self.first_name + " " + self.last_name

@@ -8,10 +8,11 @@ from accounts.serializers import UserSerializer
 
 class CaseSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
+    complainants = UserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Case
-        fields = ["id", "title", "level", "status", "created_at", "created_by", "description", "evidences"]
+        fields = ["id", "title", "level", "status", "created_at", "created_by", "description", "evidences", "complainants"]
 
 
 class MostWantedSerializer(serializers.ModelSerializer):

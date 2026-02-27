@@ -1,7 +1,11 @@
 from rest_framework import serializers
+
+from cases.models import Case
 from .models import Suspect, Investigation
 
 class SuspectSerializer(serializers.ModelSerializer):
+    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+
     class Meta:
         model = Suspect
         fields = ["id", "image", "first_name", "last_name", "national_id", "status", "case"]

@@ -65,4 +65,5 @@ class UserSerializer(serializers.ModelSerializer):
             "national_id",
             "phone",
             "roles",
+            "reporting_to"
         ]

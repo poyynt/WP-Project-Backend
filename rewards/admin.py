@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from accounts.models import Role, User
+from rewards.models import Reward
 
-admin.site.register(Role)
-admin.site.register(User)
+admin.site.register(Reward)

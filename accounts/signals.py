@@ -12,8 +12,6 @@ DEFAULT_PERMS = {
     "evidence_create": "Create Evidence",
     "evidence_read": "Read Evidence",
     "investigation_submit": "Submit investigation score",
-    "can_approve_arrest": "تأیید دستگیری",
-    "can_give_reward": "ثبت/پرداخت پاداش",
     "base": "Base Permission for all users",
     "admin": "Administrator permission"
 }
@@ -21,18 +19,18 @@ DEFAULT_PERMS = {
 DEFAULT_ROLES = {
     "admin": ["admin"],
     "chief_police": ["case_verify", "case_read", "case_edit", "case_approve"],
-    "captain": [],
+    "captain": ["case_verify", "case_read", "case_edit", "case_approve"],
     "sergeant": ["investigation_submit"],
     "detective": ["investigation_submit"],
     "police_officer": ["case_verify", "case_read", "case_edit"],
-    "patrol_officer": [],
+    "patrol_officer": ["case_verify", "case_read", "case_edit"],
     "cadet": ["case_read", "case_approve", "case_edit"],
     "complainant": ["case_create", "case_edit"],
     "witness": [],
     "suspect": [],
     "criminal": [],
-    "judge": [],
-    "forensic": [],
+    "judge": ["case_read", "case_edit", "evidence_read"],
+    "forensic": ["evidence_create", "evidence_read"],
     "base": ["base"],
 }
 
